@@ -8,6 +8,14 @@ use Illuminate\Http\Request;
 
 class SubscriptionController extends Controller
 {
+    public function getSubscriptions()
+    {
+        $subscriptions = Subscription::with('products')->get();
+
+        return response()->json([
+            'subscriptions' => $subscriptions
+        ], 200);
+    }
     public function createSubscription(Request $request)
     {
         $this->validate($request, [
