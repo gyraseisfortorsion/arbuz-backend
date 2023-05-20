@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Subscription;
+use App\Models\Product;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class SubscriptionFactory extends Factory
@@ -17,6 +18,9 @@ class SubscriptionFactory extends Factory
             'address' => $this->faker->address,
             'phone' => $this->faker->phoneNumber,
             'subscription_duration' => $this->faker->randomElement(['1 week', '2 weeks', '1 month']), // Генерация случайной продолжительности подписки
+            
         ];
     }
+    
+    
 }

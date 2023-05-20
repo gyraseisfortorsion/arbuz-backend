@@ -16,6 +16,15 @@ class SubscriptionController extends Controller
             'subscriptions' => $subscriptions
         ], 200);
     }
+
+    public function getProductsSubscription($subscriptionId)
+    {
+        $subscription = Subscription::findOrFail($subscriptionId);
+        $products = $subscription->products()->get();
+
+        return response()->json($products);
+    }
+
     public function createSubscription(Request $request)
     {
         $this->validate($request, [
@@ -34,13 +43,23 @@ class SubscriptionController extends Controller
         $phone = $request->input('phone');
         $subscriptionDuration = $request->input('subscription_duration');
 
-        // Проверяем наличие выбранных продуктов
-        $availableProducts = Product::whereIn('name', $products)->pluck('name');
-        $unavailableProducts = array_diff($products, $availableProducts->toArray());
+        // Проверяем наличие выбранных продуктов и их доступность
+        $unavailableProducts = [];
+
+        foreach ($products as $product) {
+            $weight = $product['weight'] ?? null;
+            $quantity = $product['quantity'] ?? null;
+
+            $existingProduct = Product::where('name', $product['name'])->first();
+
+            if (!$existingProduct || ($weight === 0 || $quantity === 0 || $weight === null || $quantity === null)) {
+                $unavailableProducts[] = $product['name'];
+            }
+        }
 
         if (!empty($unavailableProducts)) {
             return response()->json([
-                'message' => 'Some products are unavailable: ' . implode(', ', $unavailableProducts)
+                'message' => 'Some products are unavailable or do not exist: ' . implode(', ', $unavailableProducts)
             ], 400);
         }
 
@@ -54,48 +73,88 @@ class SubscriptionController extends Controller
         $subscription->save();
 
         // Сохраняем выбранные продукты для подписки
-        $subscription->products()->attach(Product::whereIn('name', $products)->pluck('id'));
+        foreach ($products as $product) {
+            $subscription->products()->attach($existingProduct->id, [
+                'weight' => $product['weight'],
+                'quantity' => $product['quantity']
+            ]);
+        }
 
         return response()->json([
             'message' => 'Subscription created successfully'
         ], 201);
     }
 
+    
     public function updateSubscription(Request $request, $subscriptionId)
-{
-    $this->validate($request, [
-        'products' => 'array',
-    ]);
+    {
+        $subscription = Subscription::findOrFail($subscriptionId);
 
-    $products = $request->input('products');
+        $products = $request->input('products');
+        $deliveryDay = $request->input('delivery_day');
+        $deliveryPeriod = $request->input('delivery_period');
+        $address = $request->input('address');
+        $phone = $request->input('phone');
+        $subscriptionDuration = $request->input('subscription_duration');
 
-    $subscription = Subscription::find($subscriptionId);
+        // Обновляем выбранные продукты для подписки, если они предоставлены
+        if (!empty($products)) {
+            $unavailableProducts = [];
 
-    if (!$subscription) {
-        return response()->json([
-            'message' => 'Subscription not found'
-        ], 404);
-    }
+            foreach ($products as $product) {
+                $weight = $product['weight'] ?? null;
+                $quantity = $product['quantity'] ?? null;
 
-    if ($request->has('products')) {
-        // Проверяем наличие выбранных продуктов
-        $availableProducts = Product::whereIn('name', $products)->pluck('name');
-        $unavailableProducts = array_diff($products, $availableProducts->toArray());
+                $existingProduct = Product::where('name', $product['name'])->first();
 
-        if (!empty($unavailableProducts)) {
-            return response()->json([
-                'message' => 'Some products are unavailable: ' . implode(', ', $unavailableProducts)
-            ], 400);
+                if (!$existingProduct || ($weight === 0 || $quantity === 0 || $weight === null || $quantity === null)) {
+                    $unavailableProducts[] = $product['name'];
+                }
+            }
+
+            if (!empty($unavailableProducts)) {
+                return response()->json([
+                    'message' => 'Some products are unavailable or do not exist: ' . implode(', ', $unavailableProducts)
+                ], 400);
+            }
+
+            $subscription->products()->sync([]); // Удаляем все существующие связи
+
+            foreach ($products as $product) {
+                $subscription->products()->attach($existingProduct->id, [
+                    'weight' => $product['weight'],
+                    'quantity' => $product['quantity']
+                ]);
+            }
         }
 
-        // Обновляем выбранные продукты для подписки
-        $subscription->products()->sync(Product::whereIn('name', $products)->pluck('id'));
+        // Обновляем остальные поля подписки, если они предоставлены
+        if (!empty($deliveryDay)) {
+            $subscription->delivery_day = $deliveryDay;
+        }
+
+        if (!empty($deliveryPeriod)) {
+            $subscription->delivery_period = $deliveryPeriod;
+        }
+
+        if (!empty($address)) {
+            $subscription->address = $address;
+        }
+
+        if (!empty($phone)) {
+            $subscription->phone = $phone;
+        }
+
+        if (!empty($subscriptionDuration)) {
+            $subscription->subscription_duration = $subscriptionDuration;
+        }
+
+        $subscription->save();
+
+        return response()->json([
+            'message' => 'Subscription updated successfully'
+        ], 200);
     }
 
-    return response()->json([
-        'message' => 'Subscription updated successfully',
-        'subscription' => $subscription
-    ], 200);
-}
 
 }
