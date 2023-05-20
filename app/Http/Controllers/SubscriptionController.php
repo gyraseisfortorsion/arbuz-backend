@@ -29,6 +29,7 @@ class SubscriptionController extends Controller
     {
         $this->validate($request, [
             'products' => 'required|array',
+            'products.*' => 'string', // Validate each product name as a string
             'delivery_day' => 'required|integer|min:1|max:7',
             'delivery_period' => 'required|string',
             'address' => 'required|string',
@@ -46,14 +47,11 @@ class SubscriptionController extends Controller
         // Проверяем наличие выбранных продуктов и их доступность
         $unavailableProducts = [];
 
-        foreach ($products as $product) {
-            $weight = $product['weight'] ?? null;
-            $quantity = $product['quantity'] ?? null;
+        foreach ($products as $productName) {
+            $existingProduct = Product::where('name', $productName)->first();
 
-            $existingProduct = Product::where('name', $product['name'])->first();
-
-            if (!$existingProduct || ($weight === 0 || $quantity === 0 || $weight === null || $quantity === null)) {
-                $unavailableProducts[] = $product['name'];
+            if (!$existingProduct || $existingProduct->weight === 0 || $existingProduct->quantity === 0) {
+                $unavailableProducts[] = $productName;
             }
         }
 
@@ -73,10 +71,12 @@ class SubscriptionController extends Controller
         $subscription->save();
 
         // Сохраняем выбранные продукты для подписки
-        foreach ($products as $product) {
+        foreach ($products as $productName) {
+            $existingProduct = Product::where('name', $productName)->first();
+
             $subscription->products()->attach($existingProduct->id, [
-                'weight' => $product['weight'],
-                'quantity' => $product['quantity']
+                'weight' => $existingProduct->weight,
+                'quantity' => $existingProduct->quantity
             ]);
         }
 
@@ -100,31 +100,24 @@ class SubscriptionController extends Controller
         // Обновляем выбранные продукты для подписки, если они предоставлены
         if (!empty($products)) {
             $unavailableProducts = [];
-
-            foreach ($products as $product) {
-                $weight = $product['weight'] ?? null;
-                $quantity = $product['quantity'] ?? null;
-
-                $existingProduct = Product::where('name', $product['name'])->first();
-
-                if (!$existingProduct || ($weight === 0 || $quantity === 0 || $weight === null || $quantity === null)) {
-                    $unavailableProducts[] = $product['name'];
+    
+            foreach ($products as $productName) {
+                $existingProduct = Product::where('name', $productName)->first();
+    
+                if (!$existingProduct) {
+                    $unavailableProducts[] = $productName;
+                } else {
+                    $subscription->products()->syncWithoutDetaching([$existingProduct->id => [
+                        'weight' => $existingProduct->weight,
+                        'quantity' => $existingProduct->quantity
+                    ]]);
                 }
             }
-
+    
             if (!empty($unavailableProducts)) {
                 return response()->json([
                     'message' => 'Some products are unavailable or do not exist: ' . implode(', ', $unavailableProducts)
                 ], 400);
-            }
-
-            $subscription->products()->sync([]); // Удаляем все существующие связи
-
-            foreach ($products as $product) {
-                $subscription->products()->attach($existingProduct->id, [
-                    'weight' => $product['weight'],
-                    'quantity' => $product['quantity']
-                ]);
             }
         }
 
