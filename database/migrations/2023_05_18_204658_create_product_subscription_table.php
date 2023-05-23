@@ -11,8 +11,10 @@ class CreateProductSubscriptionTable extends Migration
             $table->id();
             $table->unsignedBigInteger('product_id');
             $table->unsignedBigInteger('subscription_id');
+            $table->string('name');
             $table->float('weight')->nullable();
             $table->integer('quantity')->nullable();
+            $table->float('price');
             $table->timestamps();
 
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');

@@ -14,6 +14,9 @@ class ProductFactory extends Factory
         return [
             'name' => $this->faker->word,
             'weight' => $this->faker->randomFloat(2, 0.1, 10), // Генерация случайного веса
+            'quantity' => $this->faker->numberBetween(1, 10),
+            'price_per_kilo' => $this->faker->randomFloat(2, 0.1, 100),
+            'price_per_item' => $this->faker->randomFloat(2, 0.1, 100),
         ];
     }
 }

@@ -15,6 +15,7 @@ class CreateSubscriptionsTable extends Migration
             $table->string('address');
             $table->string('phone');
             $table->string('subscription_duration');
+            $table->integer('price_limit');
             $table->timestamps();
         });
     }

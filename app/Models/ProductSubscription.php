@@ -12,8 +12,10 @@ class ProductSubscription extends Model
     protected $fillable = [
         'product_id',
         'subscription_id',
+        'name',
         'weight',
         'quantity',
+        'price'
     ];
 
     // Define the relationships with the Product and Subscription models
@@ -25,5 +27,26 @@ class ProductSubscription extends Model
     public function subscription()
     {
         return $this->belongsTo(Subscription::class);
+    }
+
+    // Calculate the price based on the weight or quantity and product's price_per_kilo or price_per_item
+    public function calculatePrice()
+    {
+        $product = $this->product;
+
+        if ($product->price_per_kilo && $this->weight) {
+            $this->price = $product->price_per_kilo * $this->weight;
+        } elseif ($product->price_per_item && $this->quantity) {
+            $this->price = $product->price_per_item * $this->quantity;
+        }
+        $this->name=$product->name;
+    }
+
+    // Override the save method to automatically calculate the price before saving
+    public function save(array $options = [])
+    {
+        $this->calculatePrice();
+        
+        return parent::save($options);
     }
 }

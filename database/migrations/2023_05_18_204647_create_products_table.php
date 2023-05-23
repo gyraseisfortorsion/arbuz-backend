@@ -11,7 +11,10 @@ class CreateProductsTable extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->decimal('weight');
+            $table->float('weight');
+            $table->integer('quantity');
+            $table->float('price_per_kilo')->nullable();
+            $table->float('price_per_item')->nullable();
             $table->timestamps();
         });
     }

@@ -15,6 +15,7 @@ class ProductSubscriptionFactory extends Factory
         return [
             'product_id' => $product->id,
             'subscription_id' => \App\Models\Subscription::inRandomOrder()->first()->id,
+            'name' => $product->name,
             'weight' => $product->weight,
             'quantity' => $product->quantity,
         ];

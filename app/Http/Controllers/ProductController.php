@@ -9,10 +9,10 @@ class ProductController extends Controller
 {
     public function getProducts()
     {
-        $users = Product::all();
+        $products = Product::all();
 
-        return response()->json([
-            'products' => $users
-        ], 200);
+        return response()->json(
+            $products
+        , 200);
     }
 }

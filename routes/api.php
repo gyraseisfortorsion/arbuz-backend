@@ -16,3 +16,5 @@ Route::put('/users/{id}', 'App\Http\Controllers\UserController@updateUser');
 Route::delete('/users/{id}', 'App\Http\Controllers\UserController@deleteUser');
 
 Route::get('/products', 'App\Http\Controllers\ProductController@getProducts');
+
+Route::get('/productSubscriptions', 'App\Http\Controllers\ProductSubscriptionController@getProductSubscriptions');
