@@ -44,6 +44,11 @@ $ php artisan  migrate:fresh --seed
 
 ## POSTMAN 
 
+Ссылка:
+https://winter-water-675810.postman.co/workspace/Team-Workspace~a7be05f9-cd54-48bf-8215-00430f710a2e/collection/27334327-5f021837-6d8e-49af-9cf6-c6825a890502?action=share&creator=27334327 
+
+Кнопка(может не работать):
+
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/27334327-5f021837-6d8e-49af-9cf6-c6825a890502?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D27334327-5f021837-6d8e-49af-9cf6-c6825a890502%26entityType%3Dcollection%26workspaceId%3Da7be05f9-cd54-48bf-8215-00430f710a2e#?env%5BNew%20Environment%5D=W10=)
 
 
