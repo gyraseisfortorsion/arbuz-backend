@@ -133,7 +133,7 @@ class SubscriptionController extends Controller
         // Проверка на соответствие лимиту
         if ($totalPrice > $priceLimit) {
             return response()->json([
-                'message' => 'Total price exceeds the price limit'.implode(', ', $totalPrice, $priceLimit)
+                'message' => 'Total price exceeds the price limit'
             ], 400);
         }
 
@@ -166,29 +166,9 @@ class SubscriptionController extends Controller
         $subscriptionDuration = $request->input('subscription_duration');
         $priceLimit = $request->input('price_limit');
 
-        // Обновляем выбранные продукты для подписки, если они предоставлены
-        if (!empty($products)) {
-            $unavailableProducts = [];
-    
-            foreach ($products as $productName) {
-                $existingProduct = Product::where('name', $productName)->first();
-    
-                if (!$existingProduct) {
-                    $unavailableProducts[] = $productName;
-                } else {
-                    $subscription->products()->syncWithoutDetaching([$existingProduct->id => [
-                        'weight' => $existingProduct->weight,
-                        'quantity' => $existingProduct->quantity
-                    ]]);
-                }
-            }
-    
-            if (!empty($unavailableProducts)) {
-                return response()->json([
-                    'message' => 'Some products are unavailable or do not exist: ' . implode(', ', $unavailableProducts)
-                ], 400);
-            }
-        }
+       
+        
+        
 
         // Обновляем остальные поля подписки, если они предоставлены
         if (!empty($deliveryDay)) {
@@ -215,6 +195,7 @@ class SubscriptionController extends Controller
         }
 
         // Считаем общую стоимость продуктов и проверяем ее на соответствие лимиту
+        $totalPrice = 0;
         foreach ($products as $index => $productName) {
             $existingProduct = Product::where('name', $productName)->first();
 
@@ -249,7 +230,7 @@ class SubscriptionController extends Controller
                 
             }
 
-            $productSubscription->save();
+            //$productSubscription->save();
             $existingProduct->save();
         }
 

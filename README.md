@@ -1,7 +1,10 @@
 ## О задание
 
-Framework: Laravel
-Database: MySQL (Hosted on AWS RDS)
+### Framework: 
+Laravel
+
+### Database: 
+MySQL (Hosted on AWS RDS)
 
 Я так же использвал сидеры и фабрики, поэтому в таблицах автоматически генерируются юзеры, продукты, и подписки, однако сгенерированный подписки создаются засчет queries и не проходят через мои апи контроллеры поэтому могут создаваться подписки которые не следуют моим критериям в апи. Чтобы проверить это лучше прописывать кастомные post реквесты
 
@@ -28,7 +31,8 @@ $ php artisan  migrate:fresh --seed
 
 - В случае если хостинг бд по какой то причине накроется, убедительная просьба захостить бд локально и поменять параметры в .env файле.
 
+## POSTMAN 
 
-
+[![Run in Postman](https://run.pstmn.io/button.svg)](https://app.getpostman.com/run-collection/27334327-5f021837-6d8e-49af-9cf6-c6825a890502?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D27334327-5f021837-6d8e-49af-9cf6-c6825a890502%26entityType%3Dcollection%26workspaceId%3Da7be05f9-cd54-48bf-8215-00430f710a2e#?env%5BNew%20Environment%5D=W10=)
 
 
