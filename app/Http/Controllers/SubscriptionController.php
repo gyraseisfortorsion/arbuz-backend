@@ -130,7 +130,7 @@ class SubscriptionController extends Controller
             $productSubscription->save();
             $existingProduct->save();
         }
-
+        // Проверка на соответствие лимиту
         if ($totalPrice > $priceLimit) {
             return response()->json([
                 'message' => 'Total price exceeds the price limit'.implode(', ', $totalPrice, $priceLimit)
@@ -215,20 +215,45 @@ class SubscriptionController extends Controller
         }
 
         // Считаем общую стоимость продуктов и проверяем ее на соответствие лимиту
-        $totalPrice = 0;
-        $productSubscriptions = $subscription->productSubscriptions;
+        foreach ($products as $index => $productName) {
+            $existingProduct = Product::where('name', $productName)->first();
 
-        foreach ($productSubscriptions as $productSubscription) {
-            $product = $productSubscription->product;
+            $productSubscription = new ProductSubscription();
+            $productSubscription->product_id = $existingProduct->id;
+            $productSubscription->subscription_id = $subscription->id;
 
-            if ($productSubscription->weight > 0) {
-                $totalPrice += $product->price_per_kilo * $productSubscription->weight;
-            } else {
-                $totalPrice += $product->price_per_item * $productSubscription->quantity;
+            if (!empty($weights[$index])) {
+                $productSubscription->weight = $weights[$index];
+                $productSubscription->quantity = 0;
+                $totalPrice += $existingProduct->price_per_kilo * $weights[$index];
+
+                if ($existingProduct->weight - $weights[$index]<0){
+                    return response()->json([
+                        'message' => 'Not enough weight/quantity of product: ' . $productName . ' in stock'
+                    ], 400);
+                }
+                //отнимаем вес продукта в подписке из общего веса продукта
+                $existingProduct->weight -= $weights[$index];
+            } elseif (!empty($quantities[$index])) {
+                $productSubscription->weight = 0;
+                $productSubscription->quantity = $quantities[$index];
+                $totalPrice += $existingProduct->price_per_item * $quantities[$index];
+
+                if ($existingProduct->quantity - $quantities[$index]<0){
+                    return response()->json([
+                        'message' => 'Not enough weight/quantity of product: ' . $productName . ' in stock'
+                    ], 400);
+                }
+                //отнимаем количество продукты в подписке из общего количества продукта
+                $existingProduct->quantity -= $quantities[$index];
+                
             }
+
+            $productSubscription->save();
+            $existingProduct->save();
         }
 
-        // Check if the total price exceeds the price limit
+        // Проверка на соответствие лимиту
         if ($totalPrice > $subscription->price_limit) {
             return response()->json([
                 'message' => 'Total price exceeds the price limit'.implode(', ', $totalPrice, $priceLimit)

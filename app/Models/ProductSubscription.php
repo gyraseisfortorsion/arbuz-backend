@@ -29,7 +29,7 @@ class ProductSubscription extends Model
         return $this->belongsTo(Subscription::class);
     }
 
-    // Calculate the price based on the weight or quantity and product's price_per_kilo or price_per_item
+    // Расчет цены за индивидуальное колво/вес продукта
     public function calculatePrice()
     {
         $product = $this->product;
